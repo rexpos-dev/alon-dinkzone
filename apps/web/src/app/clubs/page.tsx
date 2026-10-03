@@ -1,5 +1,11 @@
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { LinkButton } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
+import { EmptyState, Notice } from '@/components/ui/Feedback';
+import { Page } from '@/components/ui/Page';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default async function ClubsPage() {
   let clubs: Awaited<ReturnType<typeof api.listClubs>> = [];
@@ -11,30 +17,38 @@ export default async function ClubsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Your Clubs</h1>
-        <Link href="/clubs/new" className="rounded bg-black px-4 py-2 text-sm text-white">
-          + Create club
-        </Link>
-      </div>
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
-      <ul className="divide-y divide-gray-200">
+    <Page width="lg">
+      <PageHeader
+        title="Your clubs"
+        subtitle="Every club you organize, in one place."
+        actions={<LinkButton href="/clubs/new">+ Create club</LinkButton>}
+      />
+      {error && <Notice>{error}</Notice>}
+      {!error && clubs.length === 0 && (
+        <EmptyState
+          title="No clubs yet"
+          action={<LinkButton href="/clubs/new">Create your first club</LinkButton>}
+        >
+          Set your organizer name and email at the top of the page, then create a club.
+        </EmptyState>
+      )}
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {clubs.map((club) => (
-          <li key={club.id} className="py-4">
-            <Link href={`/clubs/${club.id}`} className="font-medium hover:underline">
-              {club.name}
+          <li key={club.id}>
+            <Link href={`/clubs/${club.id}`} className="block h-full rounded-2xl">
+              <Card interactive className="h-full">
+                <h2 className="font-display text-xl font-semibold">{club.name}</h2>
+                {club.description && (
+                  <p className="mt-1 line-clamp-3 text-sm text-muted">{club.description}</p>
+                )}
+                <div className="mt-4">
+                  <Badge tone="sun">Join code: {club.joinCode}</Badge>
+                </div>
+              </Card>
             </Link>
-            <p className="text-sm text-gray-500">{club.description}</p>
-            <p className="text-xs text-gray-400">Join code: {club.joinCode}</p>
           </li>
         ))}
-        {!error && clubs.length === 0 && (
-          <li className="py-4 text-sm text-gray-500">
-            No clubs yet. Set your organizer name/email above, then create one.
-          </li>
-        )}
       </ul>
-    </main>
+    </Page>
   );
 }

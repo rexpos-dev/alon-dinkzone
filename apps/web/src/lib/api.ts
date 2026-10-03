@@ -47,6 +47,8 @@ export interface ClubEvent {
   courtCount: number;
   maxPlayers: number;
   status: string;
+  skillMin?: string | null;
+  skillMax?: string | null;
 }
 
 export interface EventRsvp {

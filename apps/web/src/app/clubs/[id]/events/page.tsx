@@ -1,5 +1,11 @@
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { LinkButton } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
+import { EmptyState, Notice } from '@/components/ui/Feedback';
+import { Page } from '@/components/ui/Page';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default async function ClubEventsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -12,32 +18,47 @@ export default async function ClubEventsPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Events</h1>
-        <Link href={`/clubs/${id}/events/new`} className="rounded bg-black px-4 py-2 text-sm text-white">
-          + Create event
-        </Link>
-      </div>
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
-      <ul className="divide-y divide-gray-200">
+    <Page width="lg">
+      <Link href={`/clubs/${id}`} className="mb-4 inline-block text-sm text-muted hover:text-ink">
+        ← Back to club
+      </Link>
+      <PageHeader
+        title="Events"
+        actions={<LinkButton href={`/clubs/${id}/events/new`}>+ Create event</LinkButton>}
+      />
+      {error && <Notice>{error}</Notice>}
+      {!error && events.length === 0 && (
+        <EmptyState
+          title="No events yet"
+          action={<LinkButton href={`/clubs/${id}/events/new`}>Create an event</LinkButton>}
+        >
+          Schedule your first open play session.
+        </EmptyState>
+      )}
+      <ul className="grid gap-4 sm:grid-cols-2">
         {events.map((event) => (
-          <li key={event.id} className="py-4">
-            <Link href={`/clubs/${id}/events/${event.id}`} className="font-medium hover:underline">
-              {event.title}
+          <li key={event.id}>
+            <Link href={`/clubs/${id}/events/${event.id}`} className="block h-full rounded-2xl">
+              <Card interactive className="h-full">
+                <h2 className="font-display text-xl font-semibold">{event.title}</h2>
+                <p className="mt-1 text-sm text-muted">
+                  {event.venue} · {new Date(event.startsAt).toLocaleString()}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Badge tone="leaf">{event.status}</Badge>
+                  <Badge>{event.maxPlayers} players</Badge>
+                  <Badge>{event.courtCount} courts</Badge>
+                  {event.skillMin && event.skillMax && (
+                    <Badge tone="lime">
+                      Skill {event.skillMin}–{event.skillMax}
+                    </Badge>
+                  )}
+                </div>
+              </Card>
             </Link>
-            <p className="text-sm text-gray-500">
-              {event.venue} · {new Date(event.startsAt).toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-400">
-              Status: {event.status} · Max players: {event.maxPlayers}
-            </p>
           </li>
         ))}
-        {!error && events.length === 0 && (
-          <li className="py-4 text-sm text-gray-500">No events yet for this club.</li>
-        )}
       </ul>
-    </main>
+    </Page>
   );
 }

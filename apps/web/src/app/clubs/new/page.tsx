@@ -4,6 +4,12 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { getCurrentUser } from '@/lib/currentUser';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Field, Input, Textarea } from '@/components/ui/Field';
+import { Notice } from '@/components/ui/Feedback';
+import { Page } from '@/components/ui/Page';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function NewClubPage() {
   const router = useRouter();
@@ -31,37 +37,31 @@ export default function NewClubPage() {
   }
 
   return (
-    <main className="mx-auto max-w-lg p-8">
-      <h1 className="mb-6 text-2xl font-semibold">Create a club</h1>
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Club name</span>
-          <input
-            className="rounded border px-3 py-2"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Tuesday Night Open Play"
-            required
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Description (optional)</span>
-          <textarea
-            className="rounded border px-3 py-2"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Weekly open play at Sunrise Courts, all levels welcome."
-          />
-        </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-          type="submit"
-          disabled={submitting}
-        >
-          {submitting ? 'Creating…' : 'Create club'}
-        </button>
-      </form>
-    </main>
+    <Page width="sm">
+      <PageHeader title="Create a club" subtitle="Players join with the code we generate." />
+      <Card>
+        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+          <Field label="Club name">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Tuesday Night Open Play"
+              required
+            />
+          </Field>
+          <Field label="Description (optional)">
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Weekly open play at Sunrise Courts, all levels welcome."
+            />
+          </Field>
+          {error && <Notice>{error}</Notice>}
+          <Button type="submit" disabled={submitting}>
+            {submitting ? 'Creating…' : 'Create club'}
+          </Button>
+        </form>
+      </Card>
+    </Page>
   );
 }

@@ -4,6 +4,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { getCurrentUser } from '@/lib/currentUser';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Field, Input, Textarea } from '@/components/ui/Field';
+import { Notice } from '@/components/ui/Feedback';
+import { Page } from '@/components/ui/Page';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -46,82 +52,68 @@ export default function NewEventPage() {
   }
 
   return (
-    <main className="mx-auto max-w-lg p-8">
-      <h1 className="mb-6 text-2xl font-semibold">Create an event</h1>
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Title</span>
-          <input
-            className="rounded border px-3 py-2"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Tuesday Open Play"
-            required
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Venue</span>
-          <input
-            className="rounded border px-3 py-2"
-            value={venue}
-            onChange={(e) => setVenue(e.target.value)}
-            placeholder="Sunrise Courts"
-            required
-          />
-        </label>
-        <div className="grid grid-cols-2 gap-4">
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Starts</span>
-            <input
-              className="rounded border px-3 py-2"
-              type="datetime-local"
-              value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
+    <Page width="sm">
+      <PageHeader title="Create an event" subtitle="Players can RSVP as soon as it's saved." />
+      <Card>
+        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+          <Field label="Title">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Tuesday Open Play"
               required
             />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Ends</span>
-            <input
-              className="rounded border px-3 py-2"
-              type="datetime-local"
-              value={endsAt}
-              onChange={(e) => setEndsAt(e.target.value)}
+          </Field>
+          <Field label="Venue">
+            <Input
+              value={venue}
+              onChange={(e) => setVenue(e.target.value)}
+              placeholder="Sunrise Courts"
               required
             />
-          </label>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Courts</span>
-            <input
-              className="rounded border px-3 py-2"
-              type="number"
-              min={1}
-              value={courtCount}
-              onChange={(e) => setCourtCount(Number(e.target.value))}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Max players</span>
-            <input
-              className="rounded border px-3 py-2"
-              type="number"
-              min={2}
-              value={maxPlayers}
-              onChange={(e) => setMaxPlayers(Number(e.target.value))}
-            />
-          </label>
-        </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-          type="submit"
-          disabled={submitting}
-        >
-          {submitting ? 'Creating…' : 'Create event'}
-        </button>
-      </form>
-    </main>
+          </Field>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Starts">
+              <Input
+                type="datetime-local"
+                value={startsAt}
+                onChange={(e) => setStartsAt(e.target.value)}
+                required
+              />
+            </Field>
+            <Field label="Ends">
+              <Input
+                type="datetime-local"
+                value={endsAt}
+                onChange={(e) => setEndsAt(e.target.value)}
+                required
+              />
+            </Field>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Courts">
+              <Input
+                type="number"
+                min={1}
+                value={courtCount}
+                onChange={(e) => setCourtCount(Number(e.target.value))}
+              />
+            </Field>
+            <Field label="Max players">
+              <Input
+                type="number"
+                min={2}
+                value={maxPlayers}
+                onChange={(e) => setMaxPlayers(Number(e.target.value))}
+              />
+            </Field>
+          </div>
+          {error && <Notice>{error}</Notice>}
+          <Button type="submit" disabled={submitting}>
+            {submitting ? 'Creating…' : 'Create event'}
+          </Button>
+        </form>
+      </Card>
+    </Page>
   );
 }

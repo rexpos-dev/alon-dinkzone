@@ -12,7 +12,14 @@ export class EventsService {
   findById(id: string) {
     return this.prisma.event.findUnique({
       where: { id },
-      include: { rsvps: true, matches: true },
+      include: {
+        club: true,
+        rsvps: { include: { user: true }, orderBy: { respondedAt: 'asc' } },
+        matches: {
+          include: { participants: { include: { user: true } }, scores: true },
+          orderBy: [{ roundNumber: 'asc' }, { courtNumber: 'asc' }],
+        },
+      },
     });
   }
 
@@ -31,22 +38,31 @@ export class EventsService {
   }
 
   // RSVP: approves automatically if under maxPlayers, else waitlists.
-  async rsvp(eventId: string, userId: string) {
+  // Accepts either a real userId or a reserveName (non-app-user placeholder).
+  async rsvp(eventId: string, opts: { userId?: string; reserveName?: string }) {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
       include: { rsvps: true },
     });
     if (!event) throw new NotFoundException('Event not found');
 
-    const approvedCount = event.rsvps.filter((r) => r.status === 'approved').length;
-    const status = approvedCount < event.maxPlayers ? 'approved' : 'waitlisted';
+    const activeCount = event.rsvps.filter((r) =>
+      ['approved', 'checked_in'].includes(r.status),
+    ).length;
+    const status = activeCount < event.maxPlayers ? 'approved' : 'waitlisted';
     const waitlistPosition =
       status === 'waitlisted'
         ? event.rsvps.filter((r) => r.status === 'waitlisted').length + 1
         : null;
 
     return this.prisma.eventRsvp.create({
-      data: { eventId, userId, status, waitlistPosition },
+      data: {
+        eventId,
+        userId: opts.userId,
+        reserveName: opts.reserveName,
+        status,
+        waitlistPosition,
+      },
     });
   }
 
@@ -68,5 +84,22 @@ export class EventsService {
       where: { id: rsvpId },
       data: { status: 'checked_in' },
     });
+  }
+
+  markPaid(rsvpId: string, paid: boolean) {
+    return this.prisma.eventRsvp.update({
+      where: { id: rsvpId },
+      data: { paid },
+    });
+  }
+
+  async cancelRsvp(rsvpId: string) {
+    const rsvp = await this.prisma.eventRsvp.update({
+      where: { id: rsvpId },
+      data: { status: 'cancelled' },
+    });
+    // Freed a spot — promote whoever's been waiting longest, if anyone.
+    await this.promoteNextWaitlisted(rsvp.eventId);
+    return rsvp;
   }
 }

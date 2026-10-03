@@ -1,21 +1,21 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { EventsService } from './events.service';
 
-@Controller('events')
+@Controller()
 export class EventsController {
   constructor(private eventsService: EventsService) {}
 
-  @Get()
+  @Get('events')
   list(@Query('clubId') clubId: string) {
     return this.eventsService.listForClub(clubId);
   }
 
-  @Get(':id')
+  @Get('events/:id')
   getEvent(@Param('id') id: string) {
     return this.eventsService.findById(id);
   }
 
-  @Post()
+  @Post('events')
   create(
     @Body()
     body: {
@@ -36,13 +36,23 @@ export class EventsController {
     });
   }
 
-  @Post(':id/rsvp')
-  rsvp(@Param('id') id: string, @Body() body: { userId: string }) {
-    return this.eventsService.rsvp(id, body.userId);
+  @Post('events/:id/rsvp')
+  rsvp(@Param('id') id: string, @Body() body: { userId?: string; reserveName?: string }) {
+    return this.eventsService.rsvp(id, body);
   }
 
-  @Post('rsvps/:rsvpId/check-in')
+  @Post('events/rsvps/:rsvpId/check-in')
   checkIn(@Param('rsvpId') rsvpId: string) {
     return this.eventsService.checkIn(rsvpId);
+  }
+
+  @Post('events/rsvps/:rsvpId/paid')
+  markPaid(@Param('rsvpId') rsvpId: string, @Body() body: { paid: boolean }) {
+    return this.eventsService.markPaid(rsvpId, body.paid);
+  }
+
+  @Post('events/rsvps/:rsvpId/cancel')
+  cancel(@Param('rsvpId') rsvpId: string) {
+    return this.eventsService.cancelRsvp(rsvpId);
   }
 }

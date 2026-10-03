@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { api } from '@/lib/api';
 
 export default async function ClubEventsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -6,18 +7,25 @@ export default async function ClubEventsPage({ params }: { params: Promise<{ id:
   let error: string | null = null;
   try {
     events = await api.listEvents(id);
-  } catch (e) {
+  } catch {
     error = 'Could not reach the API yet.';
   }
 
   return (
     <main className="mx-auto max-w-3xl p-8">
-      <h1 className="mb-6 text-2xl font-semibold">Events</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Events</h1>
+        <Link href={`/clubs/${id}/events/new`} className="rounded bg-black px-4 py-2 text-sm text-white">
+          + Create event
+        </Link>
+      </div>
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <ul className="divide-y divide-gray-200">
         {events.map((event) => (
           <li key={event.id} className="py-4">
-            <p className="font-medium">{event.title}</p>
+            <Link href={`/clubs/${id}/events/${event.id}`} className="font-medium hover:underline">
+              {event.title}
+            </Link>
             <p className="text-sm text-gray-500">
               {event.venue} · {new Date(event.startsAt).toLocaleString()}
             </p>

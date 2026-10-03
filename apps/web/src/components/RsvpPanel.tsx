@@ -3,6 +3,11 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api, type ClubMember, type EventRsvp } from '@/lib/api';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { EmptyState, Notice } from '@/components/ui/Feedback';
+import { Field, Input, Select } from '@/components/ui/Field';
 
 const STATUS_LABEL: Record<EventRsvp['status'], string> = {
   requested: 'Requested',
@@ -11,6 +16,15 @@ const STATUS_LABEL: Record<EventRsvp['status'], string> = {
   checked_in: 'Checked in',
   cancelled: 'Cancelled',
   no_show: 'No-show',
+};
+
+const STATUS_TONE: Record<EventRsvp['status'], 'lime' | 'sun' | 'neutral' | 'danger'> = {
+  approved: 'lime',
+  checked_in: 'lime',
+  requested: 'sun',
+  waitlisted: 'sun',
+  cancelled: 'neutral',
+  no_show: 'danger',
 };
 
 export default function RsvpPanel({
@@ -50,98 +64,107 @@ export default function RsvpPanel({
   }
 
   return (
-    <section className="mb-10">
-      <h2 className="mb-3 text-lg font-medium">
-        RSVPs — {approved.length} approved, {waitlisted.length} waitlisted
+    <section className="mb-12">
+      <h2 className="mb-4 font-display text-2xl font-semibold">
+        RSVPs
+        <span className="ml-3 align-middle text-sm font-normal text-muted">
+          {approved.length} approved · {waitlisted.length} waitlisted
+        </span>
       </h2>
 
-      <form
-        className="mb-4 flex flex-wrap items-end gap-2 text-sm"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (memberId) {
-            run('rsvp', () => api.rsvp(eventId, { userId: memberId }));
-            setMemberId('');
-          } else if (reserveName.trim()) {
-            run('rsvp', () => api.rsvp(eventId, { reserveName: reserveName.trim() }));
-            setReserveName('');
-          }
-        }}
-      >
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-gray-500">Add a club member</span>
-          <select
-            className="rounded border px-2 py-1"
-            value={memberId}
-            onChange={(e) => setMemberId(e.target.value)}
-          >
-            <option value="">Select member…</option>
-            {members
-              .filter((m) => m.user)
-              .map((m) => (
-                <option key={m.id} value={m.user!.id}>
-                  {m.user!.fullName}
-                </option>
-              ))}
-          </select>
-        </label>
-        <span className="pb-2 text-xs text-gray-400">or</span>
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-gray-500">Add a reserve (no app account)</span>
-          <input
-            className="rounded border px-2 py-1"
-            placeholder="Guest name"
-            value={reserveName}
-            onChange={(e) => setReserveName(e.target.value)}
-          />
-        </label>
-        <button className="rounded bg-black px-3 py-1.5 text-white" type="submit">
-          Add RSVP
-        </button>
-      </form>
-      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+      <Card className="mb-4">
+        <form
+          className="flex flex-wrap items-end gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (memberId) {
+              run('rsvp', () => api.rsvp(eventId, { userId: memberId }));
+              setMemberId('');
+            } else if (reserveName.trim()) {
+              run('rsvp', () => api.rsvp(eventId, { reserveName: reserveName.trim() }));
+              setReserveName('');
+            }
+          }}
+        >
+          <div className="min-w-44 flex-1">
+            <Field label="Add a club member">
+              <Select value={memberId} onChange={(e) => setMemberId(e.target.value)}>
+                <option value="">Select member…</option>
+                {members
+                  .filter((m) => m.user)
+                  .map((m) => (
+                    <option key={m.id} value={m.user!.id}>
+                      {m.user!.fullName}
+                    </option>
+                  ))}
+              </Select>
+            </Field>
+          </div>
+          <span className="pb-3 text-xs text-muted">or</span>
+          <div className="min-w-44 flex-1">
+            <Field label="Add a reserve (no app account)">
+              <Input
+                placeholder="Guest name"
+                value={reserveName}
+                onChange={(e) => setReserveName(e.target.value)}
+              />
+            </Field>
+          </div>
+          <Button type="submit">Add RSVP</Button>
+        </form>
+      </Card>
+      {error && <Notice>{error}</Notice>}
 
-      <ul className="divide-y divide-gray-200">
-        {active.map((r) => (
-          <li key={r.id} className="flex items-center justify-between gap-3 py-3 text-sm">
-            <div>
-              <span className="font-medium">{nameFor(r)}</span>{' '}
-              <span className="text-xs uppercase text-gray-400">{STATUS_LABEL[r.status]}</span>
-              {r.waitlistPosition != null && (
-                <span className="ml-1 text-xs text-gray-400">#{r.waitlistPosition}</span>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              {r.status === 'approved' && (
-                <button
-                  className="text-xs underline disabled:opacity-50"
-                  disabled={busy === r.id}
-                  onClick={() => run(r.id, () => api.checkIn(r.id))}
-                >
-                  Check in
-                </button>
-              )}
-              <button
-                className="text-xs underline disabled:opacity-50"
-                disabled={busy === r.id}
-                onClick={() => run(r.id, () => api.markPaid(r.id, !r.paid))}
+      {active.length === 0 ? (
+        <EmptyState title="No RSVPs yet">Add a member or a guest above.</EmptyState>
+      ) : (
+        <Card className="p-0">
+          <ul className="divide-y divide-line">
+            {active.map((r) => (
+              <li
+                key={r.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm"
               >
-                {r.paid ? 'Paid ✓' : 'Mark paid'}
-              </button>
-              <button
-                className="text-xs text-red-500 underline disabled:opacity-50"
-                disabled={busy === r.id}
-                onClick={() => run(r.id, () => api.cancelRsvp(r.id))}
-              >
-                Cancel
-              </button>
-            </div>
-          </li>
-        ))}
-        {active.length === 0 && (
-          <li className="py-3 text-sm text-gray-500">No RSVPs yet.</li>
-        )}
-      </ul>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{nameFor(r)}</span>
+                  <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>
+                  {r.waitlistPosition != null && (
+                    <span className="text-xs text-muted">#{r.waitlistPosition}</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-1">
+                  {r.status === 'approved' && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={busy === r.id}
+                      onClick={() => run(r.id, () => api.checkIn(r.id))}
+                    >
+                      Check in
+                    </Button>
+                  )}
+                  <Button
+                    variant={r.paid ? 'ghost' : 'secondary'}
+                    size="sm"
+                    disabled={busy === r.id}
+                    onClick={() => run(r.id, () => api.markPaid(r.id, !r.paid))}
+                  >
+                    {r.paid ? 'Paid ✓' : 'Mark paid'}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    disabled={busy === r.id}
+                    onClick={() => run(r.id, () => api.cancelRsvp(r.id))}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
     </section>
   );
 }

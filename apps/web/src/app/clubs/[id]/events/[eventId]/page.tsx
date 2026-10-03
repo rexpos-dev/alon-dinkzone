@@ -1,6 +1,11 @@
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import RsvpPanel from '@/components/RsvpPanel';
 import MatchesPanel from '@/components/MatchesPanel';
+import { Badge } from '@/components/ui/Badge';
+import { Notice } from '@/components/ui/Feedback';
+import { Page } from '@/components/ui/Page';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default async function EventDetailPage({
   params,
@@ -20,22 +25,35 @@ export default async function EventDetailPage({
 
   if (error || !event) {
     return (
-      <main className="mx-auto max-w-3xl p-8">
-        <p className="text-sm text-red-600">{error ?? 'Event not found.'}</p>
-      </main>
+      <Page>
+        <Notice>{error ?? 'Event not found.'}</Notice>
+      </Page>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
-      <h1 className="text-2xl font-semibold">{event.title}</h1>
-      <p className="mb-8 text-sm text-gray-500">
-        {event.venue} · {new Date(event.startsAt).toLocaleString()} · {event.courtCount} courts ·
-        max {event.maxPlayers} players
-      </p>
+    <Page>
+      <Link href={`/clubs/${clubId}/events`} className="mb-4 inline-block text-sm text-muted hover:text-ink">
+        ← All events
+      </Link>
+      <PageHeader
+        title={event.title}
+        subtitle={
+          <>
+            <p>
+              {event.venue} · {new Date(event.startsAt).toLocaleString()}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Badge tone="leaf">{event.status}</Badge>
+              <Badge>{event.courtCount} courts</Badge>
+              <Badge>max {event.maxPlayers} players</Badge>
+            </div>
+          </>
+        }
+      />
 
       <RsvpPanel eventId={eventId} rsvps={event.rsvps} members={members} />
       <MatchesPanel eventId={eventId} courtCount={event.courtCount} matches={event.matches} />
-    </main>
+    </Page>
   );
 }

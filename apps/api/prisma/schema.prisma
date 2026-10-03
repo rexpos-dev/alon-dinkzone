@@ -1,0 +1,173 @@
+// Phase 1 data model — mirrors the project's
+// "Technical Architecture & Database Schema" doc.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ClubRole {
+  owner
+  cohost
+  member
+}
+
+enum ClubPrivacy {
+  public
+  invite_only
+}
+
+enum EventStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+
+enum RsvpStatus {
+  requested
+  approved
+  waitlisted
+  checked_in
+  cancelled
+  no_show
+}
+
+enum MatchFormat {
+  singles
+  rotating_partners
+  fixed_pairs
+  pool
+  single_elim
+}
+
+enum MatchStatus {
+  pending
+  in_progress
+  completed
+}
+
+model User {
+  id                 String   @id @default(uuid())
+  fullName           String
+  email              String?  @unique
+  phone              String?  @unique
+  avatarUrl          String?
+  selfReportedSkill  Decimal? @db.Decimal(2, 1)
+  duprId             String? // Phase 2
+  isSupporter        Boolean  @default(false) // Phase 2
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  ownedClubs         Club[]          @relation("ClubOwner")
+  clubMemberships    ClubMember[]
+  eventRsvps         EventRsvp[]
+  matchParticipants  MatchParticipant[]
+  matchScoresSubmitted MatchScore[]
+  eventsCreated      Event[]         @relation("EventCreator")
+}
+
+model Club {
+  id             String      @id @default(uuid())
+  owner          User        @relation("ClubOwner", fields: [ownerId], references: [id])
+  ownerId        String
+  name           String
+  sport          String      @default("pickleball")
+  description    String?
+  lat            Float?
+  lng            Float?
+  privacy        ClubPrivacy @default(public)
+  joinCode       String      @unique
+  coverImageUrl  String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  members        ClubMember[]
+  events         Event[]
+}
+
+model ClubMember {
+  id          String   @id @default(uuid())
+  club        Club     @relation(fields: [clubId], references: [id])
+  clubId      String
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+  reserveName String?
+  role        ClubRole @default(member)
+  joinedAt    DateTime @default(now())
+
+  @@unique([clubId, userId])
+}
+
+model Event {
+  id              String      @id @default(uuid())
+  club            Club        @relation(fields: [clubId], references: [id])
+  clubId          String
+  title           String
+  venue           String
+  startsAt        DateTime
+  endsAt          DateTime
+  recurrenceRule  String?
+  courtCount      Int
+  maxPlayers      Int
+  skillMin        Decimal?    @db.Decimal(2, 1)
+  skillMax        Decimal?    @db.Decimal(2, 1)
+  autoApproveRsvp Boolean     @default(true)
+  status          EventStatus @default(scheduled)
+  creator         User        @relation("EventCreator", fields: [createdBy], references: [id])
+  createdBy       String
+
+  rsvps           EventRsvp[]
+  matches         Match[]
+}
+
+model EventRsvp {
+  id               String     @id @default(uuid())
+  event            Event      @relation(fields: [eventId], references: [id])
+  eventId          String
+  user             User?      @relation(fields: [userId], references: [id])
+  userId           String?
+  reserveName      String?
+  status           RsvpStatus @default(requested)
+  paid             Boolean    @default(false)
+  waitlistPosition Int?
+  respondedAt      DateTime   @default(now())
+}
+
+model Match {
+  id          String      @id @default(uuid())
+  event       Event       @relation(fields: [eventId], references: [id])
+  eventId     String
+  roundNumber Int
+  courtNumber Int
+  format      MatchFormat
+  status      MatchStatus @default(pending)
+
+  participants MatchParticipant[]
+  scores       MatchScore[]
+}
+
+model MatchParticipant {
+  id          String  @id @default(uuid())
+  match       Match   @relation(fields: [matchId], references: [id])
+  matchId     String
+  user        User?   @relation(fields: [userId], references: [id])
+  userId      String?
+  reserveName String?
+  team        Int
+}
+
+model MatchScore {
+  id           String   @id @default(uuid())
+  match        Match    @relation(fields: [matchId], references: [id])
+  matchId      String
+  team1Score   Int
+  team2Score   Int
+  submittedBy  User     @relation(fields: [submittedById], references: [id])
+  submittedById String
+  submittedAt  DateTime @default(now())
+}

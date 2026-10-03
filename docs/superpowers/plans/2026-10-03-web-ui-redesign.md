@@ -218,7 +218,7 @@ const variants: Record<Variant, string> = {
 };
 const sizes: Record<Size, string> = {
   md: 'min-h-11 px-5 text-sm',
-  sm: 'min-h-11 px-3 text-xs sm:min-h-9',
+  sm: 'min-h-11 px-3 text-xs',
 };
 
 export function buttonClass({ variant = 'primary', size = 'md' }: { variant?: Variant; size?: Size } = {}) {
@@ -457,14 +457,14 @@ Replace the final `<form ...>` element's className and children (keep the `onSub
 and inside it:
 ```tsx
       <Input
-        className="w-36 !min-h-9"
+        className="w-36"
         placeholder="Your name"
         value={fullName}
         onChange={(e) => setFullName(e.target.value)}
         required
       />
       <Input
-        className="w-44 !min-h-9"
+        className="w-44"
         placeholder="you@email.com"
         type="email"
         value={email}

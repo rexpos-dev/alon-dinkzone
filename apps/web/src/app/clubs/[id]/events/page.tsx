@@ -19,7 +19,7 @@ export default async function ClubEventsPage({ params }: { params: Promise<{ id:
 
   return (
     <Page width="lg">
-      <Link href={`/clubs/${id}`} className="mb-4 inline-block text-sm text-muted hover:text-ink">
+      <Link href={`/clubs/${id}`} className="mb-4 inline-flex min-h-11 items-center text-sm text-muted hover:text-ink">
         ← Back to club
       </Link>
       <PageHeader

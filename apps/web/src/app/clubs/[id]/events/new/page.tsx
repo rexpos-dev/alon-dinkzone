@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { getCurrentUser } from '@/lib/currentUser';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Field, Input, Textarea } from '@/components/ui/Field';
+import { Field, Input } from '@/components/ui/Field';
 import { Notice } from '@/components/ui/Feedback';
 import { Page } from '@/components/ui/Page';
 import { PageHeader } from '@/components/ui/PageHeader';

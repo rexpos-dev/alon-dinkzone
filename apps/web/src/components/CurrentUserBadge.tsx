@@ -50,6 +50,7 @@ export default function CurrentUserBadge() {
     >
       <Input
         className="w-36"
+        aria-label="Your name"
         placeholder="Your name"
         value={fullName}
         onChange={(e) => setFullName(e.target.value)}
@@ -57,6 +58,7 @@ export default function CurrentUserBadge() {
       />
       <Input
         className="w-44"
+        aria-label="Your email"
         placeholder="you@email.com"
         type="email"
         value={email}

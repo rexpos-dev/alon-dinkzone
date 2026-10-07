@@ -127,7 +127,7 @@ export default function MatchesPanel({
                       ) : (
                         <div className="flex items-center gap-2">
                           <Input
-                            aria-label="Team 1 score"
+                            aria-label={`Team 1 score, round ${round} court ${m.courtNumber}`}
                             inputMode="numeric"
                             className="w-16 text-center"
                             placeholder="0"
@@ -141,7 +141,7 @@ export default function MatchesPanel({
                           />
                           <span className="text-muted">–</span>
                           <Input
-                            aria-label="Team 2 score"
+                            aria-label={`Team 2 score, round ${round} court ${m.courtNumber}`}
                             inputMode="numeric"
                             className="w-16 text-center"
                             placeholder="0"

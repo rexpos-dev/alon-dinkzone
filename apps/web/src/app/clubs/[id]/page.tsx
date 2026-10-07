@@ -21,7 +21,7 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ i
     return (
       <Page>
         <Notice>{error ?? 'Club not found.'}</Notice>
-        <Link href="/clubs" className="text-sm text-sun underline">
+        <Link href="/clubs" className="inline-flex min-h-11 items-center text-sm text-sun underline">
           ← Back to clubs
         </Link>
       </Page>
@@ -30,7 +30,7 @@ export default async function ClubOverviewPage({ params }: { params: Promise<{ i
 
   return (
     <Page>
-      <Link href="/clubs" className="mb-4 inline-block text-sm text-muted hover:text-ink">
+      <Link href="/clubs" className="mb-4 inline-flex min-h-11 items-center text-sm text-muted hover:text-ink">
         ← All clubs
       </Link>
       <PageHeader
